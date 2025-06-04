@@ -1,0 +1,72 @@
+import { SubscriptionPlan } from '@/types';
+
+export const subscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    description: 'Perfect for small businesses just getting started',
+    price: 19,
+    features: [
+      'Up to 50 appointments per month',
+      'Up to 5 services',
+      'Text message support',
+      'Appointment reminders',
+      'Basic analytics',
+    ],
+    limits: {
+      appointments: 50,
+      services: 5,
+      staff: 1,
+      voice_messages: false,
+      calendar_integration: false,
+      analytics: false,
+    },
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    description: 'For growing businesses with more clients',
+    price: 49,
+    features: [
+      'Up to 200 appointments per month',
+      'Up to 15 services',
+      'Text & voice message support',
+      'Appointment reminders',
+      'Calendar integration',
+      'Advanced analytics',
+    ],
+    limits: {
+      appointments: 200,
+      services: 15,
+      staff: 3,
+      voice_messages: true,
+      calendar_integration: true,
+      analytics: true,
+    },
+    recommended: true,
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    description: 'For established businesses with high volume',
+    price: 99,
+    features: [
+      'Unlimited appointments',
+      'Unlimited services',
+      'Text & voice message support',
+      'Appointment reminders',
+      'Calendar integration',
+      'Advanced analytics',
+      'Multiple staff members',
+      'Priority support',
+    ],
+    limits: {
+      appointments: Infinity,
+      services: Infinity,
+      staff: 10,
+      voice_messages: true,
+      calendar_integration: true,
+      analytics: true,
+    },
+  },
+];
