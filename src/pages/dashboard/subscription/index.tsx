@@ -21,7 +21,7 @@ export default function Subscription({ user }: SubscriptionProps) {
 
   useEffect(() => {
     if (user) {
-      setCurrentPlan(user.subscription_tier);
+      setCurrentPlan(user.subscription_tier ?? null);
       
       // Calculate trial days left if applicable
       if (user.trial_ends_at) {

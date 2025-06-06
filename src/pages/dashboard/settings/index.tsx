@@ -26,8 +26,11 @@ const SettingsSchema = Yup.object().shape({
   voice_enabled: Yup.boolean(),
   voice_greeting: Yup.string().when('voice_enabled', {
     is: true,
-    then: Yup.string().required('Message vocal requis lorsque la voix est activée'),
+    then: (schema) => schema.required('Message vocal requis lorsque la voix est activée'),
+    // sinon, tu peux ajouter :
+    // otherwise: (schema) => schema.notRequired()
   }),
+
 });
 
 export default function Settings({ user }: SettingsProps) {

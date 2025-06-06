@@ -28,3 +28,16 @@ export function isTimeSlotAvailable(
   
   return true;
 }
+
+import { format } from 'date-fns';
+
+export function formatDate(date: Date | string, formatStr: string): string {
+  return format(new Date(date), formatStr);
+}
+
+
+// export function formatDate(date: Date): string {
+// formatDate(appointment.start_time, 'PPP') // pour la date
+// formatDate(appointment.start_time, 'HH:mm') // pour l'heure
+// return date.toLocaleDateString();
+// }
