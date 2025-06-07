@@ -126,7 +126,7 @@ export default function Conversations({ user }: ConversationsProps) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <p className="text-sm text-secondary-500">
-                              {formatDate(conversation.updated_at || new Date(), 'PPP à HH:mm')}
+                              {formatDate(conversation.updated_at, 'PPP à HH:mm')}
                             </p>
                           </div>
                         </div>
@@ -152,7 +152,7 @@ export default function Conversations({ user }: ConversationsProps) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                             </svg>
                             <p>
-                              Démarré le {formatDate(conversation.created_at || new Date(), 'PPP')}
+                              Démarré le {formatDate(conversation.created_at, 'PPP')}
                             </p>
                           </div>
                         </div>

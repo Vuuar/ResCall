@@ -440,7 +440,7 @@ export default function Dashboard({ user }: DashboardProps) {
                               {conversation.client_name || conversation.client_phone}
                             </p>
                             <p className="text-sm text-secondary-500">
-                              {formatDate(conversation.updated_at || new Date(), 'PPP')}
+                              {formatDate(conversation.updated_at, 'PPP')}
                             </p>
                           </div>
                           <div>

@@ -54,13 +54,13 @@ export default function AppointmentCalendar({ professionalId }: AppointmentCalen
         // Transform data for calendar
         const formattedAppointments = data.map(appointment => ({
           id: appointment.id,
-          title: `${appointment.client_name} - ${appointment.services?.[0]?.name || appointment.service_type}`,
+          title: `${appointment.client_name} - ${appointment.services?.name || appointment.service_type}`,
           start: new Date(appointment.start_time),
           end: new Date(appointment.end_time),
           status: appointment.status,
           client_name: appointment.client_name,
-          service_name: appointment.services?.[0]?.name || appointment.service_type,
-          color: appointment.services?.[0]?.color || getStatusColor(appointment.status),
+          service_name: appointment.services?.name || appointment.service_type,
+          color: appointment.services?.color || getStatusColor(appointment.status),
         }));
         
         setAppointments(formattedAppointments);

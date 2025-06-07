@@ -134,8 +134,8 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                       <div>
                         <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary-100">
                           <span className="text-sm font-medium leading-none text-primary-700">
-                            {user.first_name ? user.first_name.charAt(0) : ''}
-                            {user.last_name ? user.last_name.charAt(0) : ''}
+                            {user.first_name.charAt(0)}
+                            {user.last_name.charAt(0)}
                           </span>
                         </div>
                       </div>
@@ -201,8 +201,8 @@ export default function DashboardLayout({ children, user }: DashboardLayoutProps
                     <div className="flex min-w-0 items-center justify-between space-x-3">
                       <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary-100">
                         <span className="text-sm font-medium leading-none text-primary-700">
-                          {user.first_name ? user.first_name.charAt(0) : ''}
-                            {user.last_name ? user.last_name.charAt(0) : ''}
+                          {user.first_name.charAt(0)}
+                          {user.last_name.charAt(0)}
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">

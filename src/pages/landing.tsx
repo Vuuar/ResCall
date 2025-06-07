@@ -1,10 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Head from 'next/head';
 
 export default function Landing() {
   return (
     <div className="bg-white">
+      <Head>
+        <title>WhatsApp Booking - Simplify Your Appointments</title>
+        <meta name="description" content="Manage your appointments and client communications with ease" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      
       {/* Header */}
       <header className="relative bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">

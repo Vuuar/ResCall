@@ -1,9 +1,16 @@
-export interface User {
+export interface SubscriptionPlan {
   id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  created_at?: string;
-  updated_at?: string;
-  // Add any other fields from your professionals table
+  name: string;
+  description: string;
+  price: number;
+  features: string[];
+  limits: {
+    appointments: number;
+    services: number;
+    staff: number;
+    voice_messages: boolean;
+    calendar_integration: boolean;
+    analytics: boolean;
+  };
+  recommended?: boolean;
 }

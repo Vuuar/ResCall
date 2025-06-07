@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabase';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendWhatsAppMessage } from '@/utils/whatsapp';
 

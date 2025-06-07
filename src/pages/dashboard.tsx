@@ -1,132 +1,106 @@
-import React, { useState, useEffect } from 'react';
-import { useUser } from '@/hooks/useUser';
+import React from 'react';
+import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabase';
-import AppointmentCalendar from '@/components/AppointmentCalendar';
-import Layout from '@/components/Layout';
 import { toast } from 'react-hot-toast';
+import { User } from '@/types';
 
-export default function Dashboard() {
-  const { user, loading: userLoading } = useUser();
-  const [stats, setStats] = useState({
-    totalAppointments: 0,
-    upcomingAppointments: 0,
-    totalClients: 0,
-    activeConversations: 0,
-  });
-  const [loading, setLoading] = useState(true);
+interface DashboardProps {
+  user: User | null;
+}
 
-  useEffect(() => {
-    async function fetchDashboardData() {
-      if (!user) return;
+export default function Dashboard({ user }: DashboardProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
-      try {
-        setLoading(true);
-        
-        // Get total appointments
-        const { count: totalAppointments, error: appointmentsError } = await supabase
-          .from('appointments')
-          .select('*', { count: 'exact', head: true })
-          .eq('professional_id', user.id);
-        
-        if (appointmentsError) throw appointmentsError;
-        
-        // Get upcoming appointments
-        const today = new Date();
-        const { count: upcomingAppointments, error: upcomingError } = await supabase
-          .from('appointments')
-          .select('*', { count: 'exact', head: true })
-          .eq('professional_id', user.id)
-          .gte('start_time', today.toISOString())
-          .in('status', ['scheduled', 'confirmed']);
-        
-        if (upcomingError) throw upcomingError;
-        
-        // Get total clients
-        const { count: totalClients, error: clientsError } = await supabase
-          .from('clients')
-          .select('*', { count: 'exact', head: true })
-          .eq('professional_id', user.id);
-        
-        if (clientsError) throw clientsError;
-        
-        // Get active conversations
-        const { count: activeConversations, error: conversationsError } = await supabase
-          .from('conversations')
-          .select('*', { count: 'exact', head: true })
-          .eq('professional_id', user.id)
-          .eq('status', 'active');
-        
-        if (conversationsError) throw conversationsError;
-        
-        setStats({
-          totalAppointments: totalAppointments || 0,
-          upcomingAppointments: upcomingAppointments || 0,
-          totalClients: totalClients || 0,
-          activeConversations: activeConversations || 0,
-        });
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        toast.error('Erreur lors du chargement des données');
-      } finally {
-        setLoading(false);
-      }
+      toast.success('Déconnexion réussie');
+      router.push('/login');
+    } catch (err: any) {
+      console.error('Error logging out:', err);
+      toast.error(err.message || 'Erreur lors de la déconnexion');
     }
-    
-    fetchDashboardData();
-  }, [user]);
-
-  if (userLoading || loading) {
-    return (
-      <Layout>
-        <div className="p-8 text-center">Chargement...</div>
-      </Layout>
-    );
-  }
+  };
 
   if (!user) {
     return (
-      <Layout>
-        <div className="p-8 text-center">Veuillez vous connecter pour accéder au tableau de bord.</div>
-      </Layout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
-        
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-500">Rendez-vous totaux</h2>
-            <p className="text-3xl font-bold mt-2">{stats.totalAppointments}</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-500">Rendez-vous à venir</h2>
-            <p className="text-3xl font-bold mt-2">{stats.upcomingAppointments}</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-500">Clients</h2>
-            <p className="text-3xl font-bold mt-2">{stats.totalClients}</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-500">Conversations actives</h2>
-            <p className="text-3xl font-bold mt-2">{stats.activeConversations}</p>
+    <div className="min-h-screen bg-gray-100">
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <span className="text-xl font-bold text-indigo-600">WhatsApp Manager</span>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <button
+                onClick={handleLogout}
+                className="ml-4 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Déconnexion
+              </button>
+            </div>
           </div>
         </div>
-        
-        {/* Calendar */}
-        <div className="bg-white rounded-lg shadow mb-8">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-medium">Calendrier des rendez-vous</h2>
+      </nav>
+
+      <div className="py-10">
+        <header>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
           </div>
-          <AppointmentCalendar professionalId={user.id} />
-        </div>
+        </header>
+        <main>
+          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="px-4 py-8 sm:px-0">
+              <div className="border-4 border-dashed border-gray-200 rounded-lg p-6">
+                <h2 className="text-lg font-medium text-gray-900">Bienvenue, {user.first_name || user.email}!</h2>
+                <p className="mt-2 text-gray-600">
+                  Votre tableau de bord est en cours de construction. Revenez bientôt pour voir les nouvelles fonctionnalités.
+                </p>
+                
+                <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Informations du compte
+                    </h3>
+                  </div>
+                  <div className="border-t border-gray-200">
+                    <dl>
+                      <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Email
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                          {user.email}
+                        </dd>
+                      </div>
+                      <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt className="text-sm font-medium text-gray-500">
+                          ID
+                        </dt>
+                        <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                          {user.id}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
-    </Layout>
+    </div>
   );
 }
