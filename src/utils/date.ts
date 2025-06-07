@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-export function formatDate(dateString: string, formatString: string = 'PPP'): string {
+export const formatDate = (dateString: string, formatString: string = 'PPP') => {
   try {
     const date = parseISO(dateString);
     return format(date, formatString, { locale: fr });
@@ -9,4 +9,4 @@ export function formatDate(dateString: string, formatString: string = 'PPP'): st
     console.error('Error formatting date:', error);
     return dateString;
   }
-}
+};

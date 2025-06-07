@@ -1,48 +1,35 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
-import { AuthContext } from './_app';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { user } = useContext(AuthContext);
+  const { signIn } = useAuth();
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (loading) return;
     
     setLoading(true);
-
+    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { error } = await signIn(email, password);
+      
       if (error) {
         throw error;
       }
-
-      if (data.user) {
-        toast.success('Logged in successfully!');
-        router.push('/dashboard');
-      }
+      
+      toast.success('Connexion réussie');
+      router.push('/dashboard');
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred during login');
+      toast.error(error.message || 'Erreur lors de la connexion');
       console.error('Login error:', error);
     } finally {
       setLoading(false);
@@ -52,27 +39,27 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <Head>
-        <title>Login - WhatsApp Booking</title>
+        <title>Connexion - WhatsApp Booking</title>
       </Head>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
+          Connectez-vous à votre compte
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
+          Ou{' '}
           <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-            create a new account
+            créez un nouveau compte
           </Link>
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                Adresse email
               </label>
               <div className="mt-1">
                 <input
@@ -83,7 +70,6 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
@@ -91,7 +77,7 @@ export default function Login() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                Mot de passe
               </label>
               <div className="mt-1">
                 <input
@@ -102,7 +88,6 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
@@ -114,17 +99,16 @@ export default function Login() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  disabled={loading}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
+                  Se souvenir de moi
                 </label>
               </div>
 
               <div className="text-sm">
                 <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Forgot your password?
+                  Mot de passe oublié?
                 </a>
               </div>
             </div>
@@ -141,9 +125,9 @@ export default function Login() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Signing in...
+                    Connexion en cours...
                   </span>
-                ) : 'Sign in'}
+                ) : 'Se connecter'}
               </button>
             </div>
           </form>

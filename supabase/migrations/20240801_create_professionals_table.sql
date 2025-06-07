@@ -3,47 +3,64 @@
 
   1. New Tables
     - `professionals`
-      - `id` (uuid, primary key)
+      - `id` (uuid, primary key) - matches auth.users id
       - `email` (text, unique)
       - `first_name` (text)
       - `last_name` (text)
-      - `business_name` (text)
-      - `phone_number` (text)
-      - `subscription_tier` (text, nullable)
-      - `subscription_status` (text, nullable)
-      - `trial_ends_at` (timestamptz, nullable)
-      - `stripe_customer_id` (text, nullable)
-      - `stripe_subscription_id` (text, nullable)
+      - `full_name` (text)
+      - `phone` (text)
       - `created_at` (timestamptz)
+      - `updated_at` (timestamptz)
+      - `subscription_tier` (text)
+      - `trial_ends_at` (timestamptz)
+      - `profile_image_url` (text)
+      - `business_name` (text)
+      - `business_type` (text)
+      - `timezone` (text)
+      - `language` (text)
+      - `address` (text)
+      - `city` (text)
+      - `country` (text)
+      - `postal_code` (text)
   2. Security
     - Enable RLS on `professionals` table
-    - Add policy for authenticated users to read/update their own data
+    - Add policy for professionals to read/update their own data
 */
 
 CREATE TABLE IF NOT EXISTS professionals (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid PRIMARY KEY,
   email text UNIQUE NOT NULL,
-  first_name text NOT NULL,
-  last_name text NOT NULL,
-  business_name text NOT NULL,
-  phone_number text,
-  subscription_tier text,
-  subscription_status text,
-  trial_ends_at timestamptz,
-  stripe_customer_id text,
-  stripe_subscription_id text,
-  created_at timestamptz DEFAULT now()
+  first_name text,
+  last_name text,
+  full_name text,
+  phone text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  subscription_tier text DEFAULT 'free_trial',
+  trial_ends_at timestamptz DEFAULT (now() + interval '14 days'),
+  profile_image_url text,
+  business_name text,
+  business_type text,
+  timezone text DEFAULT 'Europe/Paris',
+  language text DEFAULT 'fr',
+  address text,
+  city text,
+  country text,
+  postal_code text
 );
 
+-- Enable Row Level Security
 ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can read own data"
+-- Create policy for users to read their own data
+CREATE POLICY "Users can read their own data"
   ON professionals
   FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
-CREATE POLICY "Users can update own data"
+-- Create policy for users to update their own data
+CREATE POLICY "Users can update their own data"
   ON professionals
   FOR UPDATE
   TO authenticated

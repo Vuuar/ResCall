@@ -23,16 +23,17 @@
 CREATE TABLE IF NOT EXISTS professionals (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email text UNIQUE NOT NULL,
-  first_name text NOT NULL,
-  last_name text NOT NULL,
-  business_name text NOT NULL,
+  first_name text,
+  last_name text,
+  business_name text,
   phone_number text,
-  subscription_tier text,
-  subscription_status text,
-  trial_ends_at timestamptz,
+  subscription_tier text DEFAULT 'free_trial',
+  subscription_status text DEFAULT 'active',
+  trial_ends_at timestamptz DEFAULT (now() + interval '14 days'),
   stripe_customer_id text,
   stripe_subscription_id text,
-  created_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
 );
 
 ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
@@ -48,3 +49,9 @@ CREATE POLICY "Users can update own data"
   FOR UPDATE
   TO authenticated
   USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own data"
+  ON professionals
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);

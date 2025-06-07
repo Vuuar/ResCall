@@ -91,6 +91,16 @@ eval(__webpack_require__.ts("module.exports = __webpack_require__(/*! ./dist/sha
 
 eval(__webpack_require__.ts("module.exports = __webpack_require__(/*! ./dist/client/link */ \"./node_modules/.pnpm/next@13.4.7_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/client/link.js\")\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9ub2RlX21vZHVsZXMvLnBucG0vbmV4dEAxMy40LjdfcmVhY3QtZG9tQDE4LjIuMF9yZWFjdEAxOC4yLjAvbm9kZV9tb2R1bGVzL25leHQvbGluay5qcyIsIm1hcHBpbmdzIjoiQUFBQSxzS0FBOEMiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9fTl9FLy4vbm9kZV9tb2R1bGVzLy5wbnBtL25leHRAMTMuNC43X3JlYWN0LWRvbUAxOC4yLjBfcmVhY3RAMTguMi4wL25vZGVfbW9kdWxlcy9uZXh0L2xpbmsuanM/Mjc3OSJdLCJzb3VyY2VzQ29udGVudCI6WyJtb2R1bGUuZXhwb3J0cyA9IHJlcXVpcmUoJy4vZGlzdC9jbGllbnQvbGluaycpXG4iXSwibmFtZXMiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///./node_modules/.pnpm/next@13.4.7_react-dom@18.2.0_react@18.2.0/node_modules/next/link.js\n"));
 
+/***/ }),
+
+/***/ "./node_modules/.pnpm/next@13.4.7_react-dom@18.2.0_react@18.2.0/node_modules/next/router.js":
+/*!**************************************************************************************************!*\
+  !*** ./node_modules/.pnpm/next@13.4.7_react-dom@18.2.0_react@18.2.0/node_modules/next/router.js ***!
+  \**************************************************************************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+eval(__webpack_require__.ts("module.exports = __webpack_require__(/*! ./dist/client/router */ \"./node_modules/.pnpm/next@13.4.7_react-dom@18.2.0_react@18.2.0/node_modules/next/dist/client/router.js\")\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLi9ub2RlX21vZHVsZXMvLnBucG0vbmV4dEAxMy40LjdfcmVhY3QtZG9tQDE4LjIuMF9yZWFjdEAxOC4yLjAvbm9kZV9tb2R1bGVzL25leHQvcm91dGVyLmpzIiwibWFwcGluZ3MiOiJBQUFBLDBLQUFnRCIsInNvdXJjZXMiOlsid2VicGFjazovL19OX0UvLi9ub2RlX21vZHVsZXMvLnBucG0vbmV4dEAxMy40LjdfcmVhY3QtZG9tQDE4LjIuMF9yZWFjdEAxOC4yLjAvbm9kZV9tb2R1bGVzL25leHQvcm91dGVyLmpzPzBjZTYiXSwic291cmNlc0NvbnRlbnQiOlsibW9kdWxlLmV4cG9ydHMgPSByZXF1aXJlKCcuL2Rpc3QvY2xpZW50L3JvdXRlcicpXG4iXSwibmFtZXMiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///./node_modules/.pnpm/next@13.4.7_react-dom@18.2.0_react@18.2.0/node_modules/next/router.js\n"));
+
 /***/ })
 
 },
