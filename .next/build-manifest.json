@@ -27,11 +27,6 @@
       "static/chunks/main.js",
       "static/chunks/pages/dashboard.js"
     ],
-    "/landing": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/landing.js"
-    ],
     "/login": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
