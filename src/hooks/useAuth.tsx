@@ -1,201 +1,201 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import { User, Session } from '@supabase/supabase-js';
+import { User } from '@/types';
 
-type Professional = {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  business_name: string | null;
-  phone_number: string | null;
-  subscription_tier: string | null;
-  subscription_status: string | null;
-  trial_ends_at: string | null;
-  stripe_customer_id: string | null;
-  stripe_subscription_id: string | null;
-  created_at: string;
-  updated_at: string;
-  [key: string]: any;
-};
-
-type AuthContextType = {
-  user: (User & Partial<Professional>) | null;
-  session: Session | null;
+interface AuthContextType {
+  user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData: Partial<User>) => Promise<{ error: any, user: any }>;
   signOut: () => Promise<void>;
-  refreshUser: () => Promise<void>;
-};
+  resetPassword: (email: string) => Promise<{ error: any }>;
+}
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<(User & Partial<Professional>) | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
+    // Check active sessions and sets the user
+    const getSession = async () => {
       try {
         setLoading(true);
         
         const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
         
         if (session?.user) {
-          await fetchUserProfile(session.user);
+          try {
+            const { data: userData, error } = await supabase
+              .from('professionals')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (userData && !error) {
+              setUser({
+                ...userData,
+                email: session.user.email || userData.email,
+                full_name: `${userData.first_name} ${userData.last_name}`.trim()
+              });
+            } else {
+              console.error('Error fetching user data:', error);
+              setUser(null);
+            }
+          } catch (err) {
+            console.error('Error in user data fetch:', err);
+            setUser(null);
+          }
         } else {
           setUser(null);
         }
-      } catch (error) {
-        console.error('Error getting initial session:', error);
+      } catch (err) {
+        console.error('Session fetch error:', err);
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    getInitialSession();
+    getSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        
+    // Listen for changes on auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
         if (session?.user) {
-          await fetchUserProfile(session.user);
+          try {
+            const { data: userData, error } = await supabase
+              .from('professionals')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (userData && !error) {
+              setUser({
+                ...userData,
+                email: session.user.email || userData.email,
+                full_name: `${userData.first_name} ${userData.last_name}`.trim()
+              });
+            } else {
+              console.error('Error fetching user data:', error);
+              setUser(null);
+            }
+          } catch (err) {
+            console.error('Error in user data fetch during auth change:', err);
+            setUser(null);
+          }
         } else {
           setUser(null);
         }
+      } catch (err) {
+        console.error('Auth state change error:', err);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const fetchUserProfile = async (authUser: User) => {
+  const signIn = async (email: string, password: string) => {
     try {
-      // Vérifier d'abord si la table existe
-      const { error: tableCheckError } = await supabase
-        .from('professionals')
-        .select('id')
-        .limit(1);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (err) {
+      console.error('Sign in error:', err);
+      return { error: err };
+    }
+  };
+
+  const signUp = async (email: string, password: string, userData: Partial<User>) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: userData
+        }
+      });
       
-      if (tableCheckError) {
-        console.error('Table professionals may not exist:', tableCheckError);
-        // Si la table n'existe pas, on continue avec juste les infos d'auth
-        setUser({ ...authUser } as User & Partial<Professional>);
-        setLoading(false);
-        return;
-      }
-      
-      // Si la table existe, on récupère le profil
-      const { data, error } = await supabase
-        .from('professionals')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        
-        // Vérifier si l'utilisateur existe dans la table professionals
-        // Si non, créer un enregistrement pour cet utilisateur
-        if (error.code === 'PGRST116') { // Code pour "No rows found"
+      if (!error && data.user) {
+        try {
+          // Create a record in the professionals table
           const { error: insertError } = await supabase
             .from('professionals')
-            .insert({
-              id: authUser.id,
-              email: authUser.email,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
+            .insert([
+              { 
+                id: data.user.id,
+                email: email,
+                first_name: userData.first_name || '',
+                last_name: userData.last_name || '',
+                phone_number: userData.phone_number || '',
+              }
+            ]);
             
           if (insertError) {
             console.error('Error creating professional record:', insertError);
-          } else {
-            console.log('Created new professional record for user');
-            // Récupérer à nouveau le profil après l'insertion
-            const { data: newData } = await supabase
-              .from('professionals')
-              .select('*')
-              .eq('id', authUser.id)
-              .single();
-              
-            if (newData) {
-              setUser({ ...authUser, ...newData } as User & Partial<Professional>);
-              return;
-            }
+            return { error: insertError, user: null };
           }
+        } catch (err) {
+          console.error('Error in professional record creation:', err);
+          return { error: err, user: null };
         }
-        
-        // En cas d'erreur, on continue avec juste les infos d'auth
-        setUser({ ...authUser } as User & Partial<Professional>);
-      } else if (data) {
-        setUser({ ...authUser, ...data } as User & Partial<Professional>);
-      } else {
-        setUser({ ...authUser } as User & Partial<Professional>);
-      }
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      setUser({ ...authUser } as User & Partial<Professional>);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshUser = async () => {
-    if (session?.user) {
-      await fetchUserProfile(session.user);
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        return { error };
       }
       
-      return { error: null };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      return { error };
+      return { error, user: data.user };
+    } catch (err) {
+      console.error('Sign up error:', err);
+      return { error: err, user: null };
     }
   };
 
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
+      setUser(null);
+    } catch (err) {
+      console.error('Sign out error:', err);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      return { error };
+    } catch (err) {
+      console.error('Reset password error:', err);
+      return { error: err };
     }
   };
 
   const value = {
     user,
-    session,
     loading,
     signIn,
+    signUp,
     signOut,
-    refreshUser,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
-};
+}

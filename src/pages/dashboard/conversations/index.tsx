@@ -13,28 +13,23 @@ interface ConversationsProps {
 export default function Conversations({ user }: ConversationsProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     if (user) {
       fetchConversations();
     }
-  }, [user, statusFilter]);
+  }, [user]);
 
   const fetchConversations = async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('conversations')
         .select('*')
         .eq('professional_id', user?.id)
         .order('updated_at', { ascending: false });
-
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setConversations(data || []);
@@ -44,6 +39,26 @@ export default function Conversations({ user }: ConversationsProps) {
       setLoading(false);
     }
   };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter(e.target.value);
+  };
+
+  const filteredConversations = conversations.filter(conversation => {
+    const matchesSearch = 
+      (conversation.client_name && conversation.client_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (conversation.client_phone && conversation.client_phone.includes(searchQuery));
+    
+    if (filter === 'all') return matchesSearch;
+    if (filter === 'with_appointment') return matchesSearch && conversation.has_appointment;
+    if (filter === 'without_appointment') return matchesSearch && !conversation.has_appointment;
+    
+    return matchesSearch;
+  });
 
   if (!user) {
     return null;
@@ -61,24 +76,43 @@ export default function Conversations({ user }: ConversationsProps) {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-6">
-          {/* Filters */}
+          {/* Search and filters */}
           <div className="bg-white shadow rounded-lg p-4 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-secondary-700">Filtrer par statut:</span>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+              <div className="w-full md:w-1/2">
+                <label htmlFor="search" className="sr-only">Rechercher</label>
                 <div className="relative">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'closed')}
-                    className="block w-full pl-3 pr-10 py-2 text-base border-secondary-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
-                  >
-                    <option value="all">Toutes</option>
-                    <option value="active">Actives</option>
-                    <option value="closed">Terminées</option>
-                  </select>
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    id="search"
+                    name="search"
+                    className="block w-full pl-10 pr-3 py-2 border border-secondary-300 rounded-md leading-5 bg-white placeholder-secondary-500 focus:outline-none focus:placeholder-secondary-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                    placeholder="Rechercher par nom ou téléphone"
+                    type="search"
+                    value={searchQuery}
+                    onChange={handleSearch}
+                  />
                 </div>
               </div>
-              <div className="mt-4 sm:mt-0">
+              <div className="flex items-center space-x-4">
+                <div>
+                  <label htmlFor="filter" className="sr-only">Filtrer</label>
+                  <select
+                    id="filter"
+                    name="filter"
+                    className="block w-full pl-3 pr-10 py-2 text-base border-secondary-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
+                    value={filter}
+                    onChange={handleFilterChange}
+                  >
+                    <option value="all">Toutes les conversations</option>
+                    <option value="with_appointment">Avec rendez-vous</option>
+                    <option value="without_appointment">Sans rendez-vous</option>
+                  </select>
+                </div>
                 <button
                   onClick={fetchConversations}
                   className="inline-flex items-center px-3 py-2 border border-secondary-300 shadow-sm text-sm leading-4 font-medium rounded-md text-secondary-700 bg-white hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
@@ -100,61 +134,50 @@ export default function Conversations({ user }: ConversationsProps) {
                   <div key={i} className="h-16 bg-secondary-100 rounded"></div>
                 ))}
               </div>
-            ) : conversations.length > 0 ? (
+            ) : filteredConversations.length > 0 ? (
               <ul className="divide-y divide-secondary-200">
-                {conversations.map((conversation) => (
+                {filteredConversations.map((conversation) => (
                   <li key={conversation.id}>
                     <Link href={`/dashboard/conversations/${conversation.id}`} className="block hover:bg-secondary-50">
                       <div className="px-4 py-4 sm:px-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <p className="text-sm font-medium text-primary-600 truncate">
-                              {conversation.client_name || conversation.client_phone}
-                            </p>
-                            <div className={`ml-2 flex-shrink-0 flex`}>
-                              <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                conversation.status === 'active' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-secondary-100 text-secondary-800'
-                              }`}>
-                                {conversation.status === 'active' ? 'Active' : 'Terminée'}
+                            <div className="flex-shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
+                                <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-primary-600">
+                                {conversation.client_name || 'Client sans nom'}
+                              </div>
+                              <div className="text-sm text-secondary-500">
+                                {conversation.client_phone}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            {conversation.has_appointment && (
+                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 mr-2">
+                                Rendez-vous
+                              </span>
+                            )}
+                            <div className="ml-2 flex-shrink-0 flex">
+                              <svg className="mr-1.5 h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <p className="text-sm text-secondary-500">
+                                {formatDate(conversation.updated_at, 'PPp')}
                               </p>
                             </div>
                           </div>
-                          <div className="ml-2 flex-shrink-0 flex">
-                            <svg className="mr-1.5 h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="text-sm text-secondary-500">
-                              {formatDate(conversation.updated_at, 'PPP à HH:mm')}
-                            </p>
-                          </div>
                         </div>
-                        <div className="mt-2 sm:flex sm:justify-between">
-                          <div className="sm:flex">
-                            <p className="flex items-center text-sm text-secondary-500">
-                              <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              {conversation.client_phone}
-                            </p>
-                            {conversation.appointment_id && (
-                              <p className="mt-2 flex items-center text-sm text-secondary-500 sm:mt-0 sm:ml-6">
-                                <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                Rendez-vous associé
-                              </p>
-                            )}
-                          </div>
-                          <div className="mt-2 flex items-center text-sm text-secondary-500 sm:mt-0">
-                            <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-secondary-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                            </svg>
-                            <p>
-                              Démarré le {formatDate(conversation.created_at, 'PPP')}
-                            </p>
-                          </div>
+                        <div className="mt-2">
+                          <p className="text-sm text-secondary-500 truncate">
+                            {conversation.last_message || 'Aucun message'}
+                          </p>
                         </div>
                       </div>
                     </Link>
@@ -168,8 +191,8 @@ export default function Conversations({ user }: ConversationsProps) {
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-secondary-900">Aucune conversation</h3>
                 <p className="mt-1 text-sm text-secondary-500">
-                  {statusFilter !== 'all'
-                    ? `Aucune conversation avec le statut "${statusFilter === 'active' ? 'Active' : 'Terminée'}".`
+                  {searchQuery
+                    ? "Aucune conversation ne correspond à votre recherche."
                     : "Vous n'avez pas encore de conversations."}
                 </p>
               </div>
